@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile-Ready Registration</title>
+<!--    <link rel="stylesheet" th:href="@{/css/register.css}">-->
+</head>
+<body>
+<div class="register-container">
+    <h2>Register</h2>
+    <form id="registrationForm" action="#" th:action="@{/static}" th:object="${userRegistration}" method="post">
+
+        <div class="input-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Enter your name"
+                   th:field="*{name}" required />
+            <div th:if="${#fields.hasErrors('name')}"  th:errors="*{name}" class="error-message" ></div>
+        </div>
+
+        <div class="input-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="enter your email"
+                   th:field="*{email}" required>
+            <div th:if="${#fields.hasErrors('email')}"  th:errors="*{email}" class="error-message" ></div>
+        </div>
+
+        <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Min 8 characters"
+                   th:field="*{password}"  required>
+            <div th:if="${#fields.hasErrors('password')}"  th:errors="*{password}" class="error-message" ></div>
+        </div>
+
+        <button type="submit" class="register-button">Register</button>
+
+        <p class="login-link">Already Registered? <a th:href="@{/login}">Login Here</a></p>
+
+        <a><a th:href="@{/preview}"> Preview</a> without doing registration </a>
+        <div id="message" class="validation-message"></div>
+    </form>
+
+<!--    <div class="message">-->
+<!--        <span th:text="${message}"></span>-->
+<!--        <a th:if="${message == 'Registered successfully! Now login.'}" href="/login">Login</a>-->
+<!--    </div>-->
+
+</div>
+<!--<script type="text/javascript" th:src="@{/js/register.js}"></script>-->
+</body>
+</html>

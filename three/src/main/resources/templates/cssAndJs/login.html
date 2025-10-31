@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IIT Login Page</title>
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+<body>
+<div class="login-container">
+    <h2>Login Portal</h2>
+    <form id="loginForm">
+        <div class="input-group">
+            <label for="email">Email</label>
+            <input type="text" id="email" name="email" placeholder="Enter your Email" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+
+        <button type="submit" class="login-button">Login</button>
+
+        <p class="register-link">New User? <a href="/api/register">Register Here</a></p>
+        <div id="message" class="auth-message"></div>
+    </form>
+</div>
+<script type="text/javascript" th:src="@{/js/login.js}"></script>
+</body>
+</html>

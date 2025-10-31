@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home | Daily Progress Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", sans-serif;
+        }
+        body {
+            background: #f6f8fa;
+            color: #222;
+        }
+        /* Navbar */
+        nav {
+            background: #004aad;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+        nav .logo {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        nav .actions {
+            display: flex;
+            gap: 12px;
+        }
+        nav button {
+            background: #fff;
+            color: #004aad;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        nav button:hover {
+            background: #e5e9ff;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            justify-content: space-between;
+            padding: 24px;
+            gap: 20px;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            flex: 1;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            resize: none;
+            /* height: 80vh; */
+        }
+
+        /* Daily activity */
+        #daily-activity textarea {
+            width: 100%;
+            height: 80vh;
+            resize: none;
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        /* Goal section */
+        #goal-section p {
+            font-size: 1rem;
+            line-height: 1.6;
+            background: #f2f6ff;
+            padding: 12px;
+            border-radius: 8px;
+            min-height: 120px;
+            border: 1px solid #d9e3ff;
+            /* resize: none; */
+
+            height: 80vh;
+            overflow-y: auto;
+
+            white-space: pre-wrap;
+
+        }
+        #goal-section button {
+            background: #004aad;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        #goal-section button:hover {
+            background: #003b8c;
+        }
+
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <div class="logo" th:remove="tag" >👤 Welcome, User</div>
+    <div class="actions">
+        <button>Login</button>
+        <button>Signup</button>
+        <button id="editGoalBtn">Edit Goal</button>
+        <button>Delete Account</button>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="section" id="daily-activity">
+        <h2>📝 Daily Activity</h2>
+        <textarea placeholder="Write today's progress..."></textarea>
+    </div>
+
+    <div class="section" id="goal-section">
+        <h2>🎯 My Goal</h2>
+        <p id="goalText">Become a top-level engineer by mastering Spring Boot, electronics & AI — stay consistent every day.</p>
+        <button id="saveGoalBtn" style="display:none;">Save Goal</button>
+    </div>
+</div>
+
+<script>
+    const editBtn = document.getElementById("editGoalBtn");
+    const saveBtn = document.getElementById("saveGoalBtn");
+    const goalText = document.getElementById("goalText");
+
+    let isEditing = false;
+    let originalText = goalText.textContent;
+
+    editBtn.addEventListener("click", () => {
+        if (!isEditing) {
+            const currentGoalText = document.getElementById("goalText");
+            const textarea = document.createElement("textarea");
+            textarea.value = goalText.textContent;
+            textarea.style.width = "100%";
+            textarea.style.height = "80vh";
+            textarea.style.padding = "10px";
+            textarea.style.borderRadius = "8px";
+            textarea.style.border = "1px solid #ccc";
+            textarea.style.resize = "none";
+
+            textarea.style.fontSize = "1rem";
+
+            // goalText.replaceWith(textarea);
+
+            textarea.value = currentGoalText.textContent;
+            currentGoalText.replaceWith(textarea);
+
+            goalText.textContent = textarea.value;
+            editBtn.textContent = "Cancel Edit";
+            saveBtn.style.display = "inline-block";
+            isEditing = true;
+        } else {
+            location.reload();
+        }
+    });
+
+    saveBtn.addEventListener("click", () => {
+        const textarea = document.querySelector("#goal-section textarea");
+        const newText = textarea.value.trim() || "No goal set yet.";
+        const newP = document.createElement("p");
+        newP.id = "goalText";
+        newP.textContent = newText;
+        textarea.replaceWith(newP);
+        editBtn.textContent = "Edit Goal";
+        saveBtn.style.display = "none";
+        isEditing = false;
+    });
+</script>
+</body>
+</html>
