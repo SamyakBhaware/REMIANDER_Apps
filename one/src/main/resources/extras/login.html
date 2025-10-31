@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Security Login</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons Library -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+
+</head>
+
+<link rel="stylesheet" href="/extras/css1/login.css">
+<body class="flex items-center justify-center min-h-screen p-4 bg-slate-900">
+
+<!-- Custom Message Box (for Spring Security Errors) -->
+<div id="message-box" class="hidden fixed top-4 mx-auto w-full max-w-sm text-center py-3 px-4 rounded-lg text-white font-medium shadow-xl transition-opacity duration-500 opacity-0 z-50">
+    <!-- Message will appear here -->
+</div>
+
+<!-- The Form Container -->
+<section id="login-section"
+         class="relative w-full max-w-sm md:max-w-md
+               bg-gray-800 text-gray-100 rounded-xl
+               p-8 md:p-10 shadow-2xl transition-all duration-500 border border-gray-700">
+
+    <form id="login-form" method="POST" action="/req/login">
+
+        <h1 class="text-3xl font-bold text-white text-center mb-8">
+            Login
+        </h1>
+
+        <!-- Email Input -->
+        <div class="input-group">
+            <ion-icon name="person-outline"></ion-icon>
+            <input name="email" id="email" type="email" placeholder=" " required autocomplete="username" />
+            <label for="email">Email</label>
+        </div>
+
+        <!-- Password Input -->
+        <div class="input-group">
+            <ion-icon name="lock-closed-outline"></ion-icon>
+            <input name="password" type="password" id="password" placeholder=" " required autocomplete="current-password" />
+            <label for="password">Password</label>
+        </div>
+
+        <!-- Forget Password Link -->
+        <!-- mb-8 yahan shift kiya hai -->
+        <div class="flex justify-end text-sm mt-4 mb-8">
+            <a href="#" class="text-gray-400 hover:text-primary-blue transition-colors duration-300">
+                Forget Password?
+            </a>
+        </div>
+
+        <!-- Login Button: bg-primary-blue se blue hai -->
+        <button id="login-button" type="submit" href="/home"
+                class="w-full h-12 rounded-lg bg-primary-blue text-white font-bold text-lg
+                           shadow-md hover:bg-primary-blue/90 transition-all duration-300 ease-in-out"
+        >
+            Log In
+        </button>
+
+        <!-- Register Link -->
+        <div class="text-center text-sm text-gray-300 mt-6">
+            <p>Don't have an account?
+                <a href="/req/register" class="font-bold text-primary-blue hover:underline transition-colors duration-300">
+                    Sign Up
+                </a>
+            </p>
+        </div>
+
+        <!-- Bypass Link (Proceed without Login) -->
+        <div class="text-center text-sm mt-2">
+            <a href="/home"
+               class="text-gray-400 hover:text-white transition-colors duration-300 underline cursor-pointer">
+                Proceed without Login
+            </a>
+        </div>
+
+    </form>
+</section>
+<script>
+    // Custom Message Box function (Same as before)
+    const showMessageBox = (message, color) => {
+        const messageBox = document.getElementById('message-box');
+        messageBox.textContent = message;
+
+        // Clear existing color classes
+        messageBox.classList.remove('bg-red-500', 'bg-green-500', 'hidden');
+
+        if (color === 'red') {
+            messageBox.classList.add('bg-red-500');
+        } else if (color === 'green') {
+            messageBox.classList.add('bg-green-500');
+        }
+
+        // Show the box
+        messageBox.classList.remove('opacity-0');
+        messageBox.classList.add('opacity-100');
+
+        // Hide message after 3 seconds
+        setTimeout(() => {
+            messageBox.classList.remove('opacity-100');
+            messageBox.classList.add('opacity-0');
+            // Hide message after transition
+            setTimeout(() => messageBox.classList.add('hidden'), 500);
+        }, 3000);
+    };
+
+    // 1. Client-Side Validation and AJAX Logic
+    const loginForm = document.getElementById('login-form');
+    const loginButton = document.getElementById('login-button');
+
+    loginForm.addEventListener('submit', (event) => {
+        // 🛑 Step 1: Default form submission ko rok do (AJAX ke liye zaroori)
+        event.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        // 🔑 Validation Check
+        if (email.trim() === "" || password.trim() === "") {
+            showMessageBox("Kripya email aur password dono daalein.", 'red');
+            return;
+        }
+
+        // Button state change
+        loginButton.textContent = 'Checking...';
+        loginButton.disabled = true;
+
+        // 🛠️ Step 2: Credentials ko URLSearchParams (Form Data) mein encode karna
+        const formData = new URLSearchParams();
+        formData.append('username', email);      // Spring Security default mein 'username' expect karta hai
+        formData.append('password', password);    // Aapke form mein name="email" hai, toh aapko backend mein 'usernameParameter("email")' set karna hoga.
+                                                  // Agar aap backend configuration nahi badalna chahte, toh yahan 'username' hi use karna behtar hai.
+
+        // 🚀 Step 3: fetch() Request bhejte hain (Action: /req/login)
+        fetch(loginForm.action, {
+            method: 'POST',
+            headers: {
+                // Spring Security is default form data header ko expect karta hai
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formData
+        })
+            .then(response => {
+                loginButton.textContent = 'Log In';
+                loginButton.disabled = false;
+
+                // 💡 IITian Check: Spring Security Redirect handling
+                if (response.redirected) {
+                    // 🟢 Success Case: Agar final URL /home hai
+                    if (response.url.includes('/home')) {
+                        showMessageBox('Login Successful! Redirecting...', 'green');
+                        // Page ko final URL par redirect kar do
+                        window.location.href = response.url;
+                        return;
+                    }
+                    // 🔴 Failure Case: Agar final URL wapas /login ya /login?error hai
+                    else if (response.url.includes('/login')) {
+                        showMessageBox('Login Failed: Invalid Email or Password.', 'red');
+                        return;
+                    }
+                }
+
+                // Agar Spring Security ne 302 (Redirect) nahi bheja aur koi aur status aaya
+                if (response.status === 401 || response.status === 403) {
+                    showMessageBox('Login Failed: Unauthorized access.', 'red');
+                } else if (response.status !== 200) {
+                    showMessageBox(`Error: Server responded with status ${response.status}`, 'red');
+                } else {
+                    // Fallback: Agar 200 OK aaya, but redirect nahi hua (shouldn't happen)
+                    showMessageBox('Login status ambiguous. Try again.', 'red');
+                }
+            })
+            .catch(error => {
+                // Network ya server down hone par
+                console.error('Network Error:', error);
+                showMessageBox('Network error. Server se connection nahi ho paya.', 'red');
+                loginButton.textContent = 'Log In';
+                loginButton.disabled = false;
+            });
+    });
+</script>

@@ -1,0 +1,369 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>Functional Signup Form (#111)</title>-->
+<!--    <script src="https://cdn.tailwindcss.com"></script>-->
+<!--    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>-->
+<!--    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>-->
+
+<!--    <script>-->
+<!--        tailwind.config = {-->
+<!--            theme: {-->
+<!--                extend: {-->
+<!--                    colors: {-->
+<!--                        'primary-blue': '#4c51bf', // #111 design ka primary blue-->
+<!--                    },-->
+<!--                    boxShadow: {-->
+<!--                        'focus-blue': '0 0 0 3px rgba(76, 81, 191, 0.5)', // #111 focus shadow-->
+<!--                    }-->
+<!--                }-->
+<!--            }-->
+<!--        }-->
+
+<!--        // Custom Message Box function (same as before)-->
+<!--        const showMessageBox = (message, color) => {-->
+<!--            const messageBox = document.getElementById('message-box');-->
+<!--            messageBox.textContent = message;-->
+
+<!--            messageBox.classList.remove('bg-red-500', 'bg-green-500', 'hidden');-->
+
+<!--            if (color === 'red') {-->
+<!--                messageBox.classList.add('bg-red-500');-->
+<!--            } else if (color === 'green') {-->
+<!--                messageBox.classList.add('bg-green-500');-->
+<!--            }-->
+
+<!--            messageBox.classList.remove('opacity-0');-->
+<!--            messageBox.classList.add('opacity-100');-->
+
+<!--            setTimeout(() => {-->
+<!--                messageBox.classList.remove('opacity-100');-->
+<!--                messageBox.classList.add('opacity-0');-->
+<!--                setTimeout(() => messageBox.classList.add('hidden'), 500);-->
+<!--            }, 3000);-->
+<!--        }-->
+
+<!--        // Function to handle the form submission (Refactored for async/await)-->
+<!--        window.handleSignup = async (event) => { // Made async for cleaner fetch handling-->
+<!--            event.preventDefault(); // Stop default form submission-->
+
+<!--            const submitButton = document.getElementById("submit");-->
+<!--            const username = document.getElementById('username').value;-->
+<!--            const email = document.getElementById('email').value;-->
+<!--            const password = document.getElementById('password').value;-->
+<!--            const confirmPassword = document.getElementById('passwordcon').value;-->
+
+<!--            // Input Validation-->
+<!--            if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {-->
+<!--                showMessageBox("Please fill in all required fields.", 'red');-->
+<!--                return;-->
+<!--            }-->
+
+<!--            if (password !== confirmPassword) {-->
+<!--                showMessageBox("Error: Passwords do not match!", 'red');-->
+<!--                return;-->
+<!--            }-->
+
+<!--            const data ={-->
+<!--                username,-->
+<!--                email,-->
+<!--                password-->
+<!--            };-->
+<!--            const jsonData = JSON.stringify(data);-->
+
+<!--            // UI Feedback during submission-->
+<!--            submitButton.textContent = 'Signing up...';-->
+<!--            submitButton.disabled = true;-->
+
+<!--            try {-->
+<!--                const response = await fetch('req/register', { // Use await for cleaner async code-->
+<!--                    method: 'POST',-->
+<!--                    headers:{-->
+<!--                        'Content-Type': 'application/json'-->
+<!--                    },-->
+<!--                    body: jsonData-->
+<!--                });-->
+
+<!--                submitButton.textContent = 'Sign Up';-->
+<!--                submitButton.disabled = false;-->
+
+<!--                if(response.ok){ // Check if status is 200-299-->
+<!--                    showMessageBox('Signup successful! Redirecting to Login...', 'green');-->
+<!--                    document.getElementById('signup-form').reset();-->
+<!--                    // Optional: Redirect to login page after successful signup-->
+<!--                    setTimeout(() => {-->
+<!--                        window.location.href = 'login.html'; // Adjust as per your login page path-->
+<!--                    }, 2000); // Redirect after 2 seconds-->
+<!--                } else {-->
+<!--                    // Handle non-OK responses (e.g., 400 Bad Request)-->
+<!--                    const errorData = await response.json().catch(() => ({ message: 'Server error' })); // Parse JSON or provide fallback-->
+<!--                    showMessageBox(`Signup failed: ${errorData.message || 'Server error'}.`, 'red');-->
+<!--                }-->
+<!--            } catch (error) {-->
+<!--                submitButton.textContent = 'Sign Up';-->
+<!--                submitButton.disabled = false;-->
+<!--                console.error('Network or CORS error:', error);-->
+<!--                showMessageBox('Signup failed: Could not reach the server.', 'red');-->
+<!--            }-->
+<!--        };-->
+
+<!--        // Attach event listener to the form's submit event-->
+<!--        window.onload = () => {-->
+<!--            document.getElementById('signup-form').addEventListener('submit', handleSignup);-->
+<!--        };-->
+
+
+
+
+
+<!--        // const loginButton = document.getElementById("login")-->
+<!--        document.getElementById("login").addEventListener("click", () => {-->
+<!--            window.location.href = "/login"; // Browser GET request karega-->
+<!--        });-->
+
+<!--    </script>-->
+
+
+
+<!--</head>-->
+<!--<body class="flex items-center justify-center min-h-screen p-4 bg-slate-900">-->
+
+<!--<div id="message-box" class="hidden fixed top-4 mx-auto w-full max-w-sm text-center py-3 px-4 rounded-lg text-white font-medium shadow-xl transition-opacity duration-500 opacity-0 z-50">-->
+<!--</div>-->
+
+<!--<section id="signup-section"-->
+<!--         class="relative w-full max-w-sm md:max-w-md-->
+<!--               bg-gray-800 text-gray-100 rounded-xl-->
+<!--               p-8 md:p-10 shadow-2xl transition-all duration-500 border border-gray-700-->
+<!--               transform hover:scale-[1.02] duration-500 ease-in-out">-->
+
+<!--    <form id="signup-form">-->
+
+<!--        <h1 class="text-3xl font-extrabold text-white text-center mb-10 tracking-wider">-->
+<!--            CREATE ACCOUNT-->
+<!--        </h1>-->
+
+<!--        <div class="input-group mb-6 relative">-->
+<!--            <ion-icon name="person-outline" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></ion-icon>-->
+<!--            <input type="text" id="username" name="username" placeholder=" " required autocomplete="name"-->
+<!--                   class="w-full pl-10 pr-4 py-3 bg-gray-700 rounded-lg border border-gray-600-->
+<!--                          focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition duration-200"-->
+<!--            />-->
+<!--            <label for="username" class="absolute left-10 top-3 text-gray-400 transition-all duration-200 pointer-events-none">Full Name</label>-->
+<!--        </div>-->
+
+<!--        <div class="input-group mb-6 relative">-->
+<!--            <ion-icon name="mail-outline" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></ion-icon>-->
+<!--            <input type="email" id="email" name="email" placeholder=" " required autocomplete="email"-->
+<!--                   class="w-full pl-10 pr-4 py-3 bg-gray-700 rounded-lg border border-gray-600-->
+<!--                          focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition duration-200"-->
+<!--            />-->
+<!--            <label for="email" class="absolute left-10 top-3 text-gray-400 transition-all duration-200 pointer-events-none">Email Address</label>-->
+<!--        </div>-->
+
+<!--        <div class="input-group mb-6 relative">-->
+<!--            <ion-icon name="lock-closed-outline" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></ion-icon>-->
+<!--            <input type="password" id="password" name="password" placeholder=" " required autocomplete="new-password"-->
+<!--                   class="w-full pl-10 pr-4 py-3 bg-gray-700 rounded-lg border border-gray-600-->
+<!--                          focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition duration-200"-->
+<!--            />-->
+<!--            <label for="password" class="absolute left-10 top-3 text-gray-400 transition-all duration-200 pointer-events-none">Password</label>-->
+<!--        </div>-->
+
+<!--        <div class="input-group mb-8 relative">-->
+<!--            <ion-icon name="lock-closed-outline" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></ion-icon>-->
+<!--            <input type="password" id="passwordcon" name="passwordcon" placeholder=" " required autocomplete="new-password"-->
+<!--                   class="w-full pl-10 pr-4 py-3 bg-gray-700 rounded-lg border border-gray-600-->
+<!--                          focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition duration-200"-->
+<!--            />-->
+<!--            <label for="passwordcon" class="absolute left-10 top-3 text-gray-400 transition-all duration-200 pointer-events-none">Confirm Password</label>-->
+<!--        </div>-->
+
+<!--        <button id="submit" type="submit"-->
+<!--                class="w-full h-12 rounded-lg bg-primary-blue text-white font-extrabold text-lg-->
+<!--                       shadow-xl hover:shadow-primary-blue/30 active:scale-[0.98]-->
+<!--                       transition-all duration-300 ease-in-out-->
+<!--                       disabled:bg-gray-600 disabled:shadow-none disabled:cursor-not-allowed">-->
+<!--            Sign Up-->
+<!--        </button>-->
+
+<!--        <div class="text-center text-sm text-gray-400 mt-8">-->
+<!--            <p>Already have an account?-->
+<!--                <a href="/login.html" id="login"-->
+<!--                   class="font-bold text-primary-blue hover:underline transition-colors duration-300 ml-1">-->
+<!--                    Log In-->
+<!--                </a>-->
+<!--            </p>-->
+<!--        </div>-->
+
+<!--    </form>-->
+<!--</section>-->
+
+<!--</body>-->
+<!--</html>-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} ? ${pageTitle} : 'Functional Signup Form (#111)'"></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-blue': '#4c51bf', // #111 design ka primary blue
+                    },
+                    boxShadow: {
+                        'focus-blue': '0 0 0 3px rgba(76, 81, 191, 0.5)', // #111 focus shadow
+                    }
+                }
+            }
+        }
+
+        // SSR Approach mein yeh JavaScript functionality ab Server (Spring Controller) handle karega.
+        // Client-side JS validation/AJAX logic ko remove kar diya gaya hai.
+
+        // Par, Login redirect functionality ko rehne dete hain for client-side navigation.
+        window.onload = () => {
+            // 'login' button click hone par seedha redirect
+            document.getElementById("login-link").addEventListener("click", (event) => {
+                // default behavior ko prevent karte hain, taaki browser GET request kare /login par
+                event.preventDefault();
+                window.location.href = event.currentTarget.getAttribute('href');
+            });
+        };
+
+        // Note: Agar aapko client-side UI feedback (jaise message-box) chahiye,
+        // toh usse Thymeleaf ke saath conditionally display karna hoga (th:if).
+    </script>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 bg-slate-900">
+
+<div th:if="${errorMessage}" id="message-box-error"
+     class="fixed top-4 mx-auto w-full max-w-sm text-center py-3 px-4 rounded-lg bg-red-500 text-white font-medium shadow-xl z-50">
+    <span th:text="${errorMessage}">Registration failed: Server error.</span>
+</div>
+
+<div th:if="${successMessage}" id="message-box-success"
+     class="fixed top-4 mx-auto w-full max-w-sm text-center py-3 px-4 rounded-lg bg-green-500 text-white font-medium shadow-xl z-50">
+    <span th:text="${successMessage}">Signup successful!</span>
+</div>
+
+<section id="signup-section"
+         class="relative w-full max-w-sm md:max-w-md
+               bg-gray-800 text-gray-100 rounded-xl
+               p-8 md:p-10 shadow-2xl transition-all duration-500 border border-gray-700
+               transform hover:scale-[1.02] duration-500 ease-in-out">
+
+    <form id="signup-form" th:action="@{/register}" th:object="${userForm}" method="post">
+
+        <h1 class="text-3xl font-extrabold text-white text-center mb-10 tracking-wider">
+            CREATE ACCOUNT
+        </h1>
+
+        <div class="input-group mb-6 relative">
+            <ion-icon name="person-outline" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></ion-icon>
+            <input type="text" id="username" name="username" placeholder=" " required autocomplete="name"
+                   th:field="*{username}"
+                   class="w-full pl-10 pr-4 py-3 bg-gray-700 rounded-lg border border-gray-600
+                          focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition duration-200"
+            />
+            <label for="username" class="absolute left-10 top-3 text-gray-400 transition-all duration-200 pointer-events-none">Full Name</label>
+            <span th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="text-red-400 text-sm mt-1 block pl-10">Username Error!</span>
+        </div>
+
+        <div class="input-group mb-6 relative">
+            <ion-icon name="mail-outline" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></ion-icon>
+            <input type="email" id="email" name="email" placeholder=" " required autocomplete="email"
+                   th:field="*{email}"
+                   class="w-full pl-10 pr-4 py-3 bg-gray-700 rounded-lg border border-gray-600
+                          focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition duration-200"
+            />
+            <label for="email" class="absolute left-10 top-3 text-gray-400 transition-all duration-200 pointer-events-none">Email Address</label>
+            <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-red-400 text-sm mt-1 block pl-10">Email Error!</span>
+        </div>
+
+        <div class="input-group mb-6 relative">
+            <ion-icon name="lock-closed-outline" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></ion-icon>
+            <input type="password" id="password" name="password" placeholder=" " required autocomplete="new-password"
+                   th:field="*{password}"
+                   class="w-full pl-10 pr-4 py-3 bg-gray-700 rounded-lg border border-gray-600
+                          focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition duration-200"
+            />
+            <label for="password" class="absolute left-10 top-3 text-gray-400 transition-all duration-200 pointer-events-none">Password</label>
+            <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-red-400 text-sm mt-1 block pl-10">Password Error!</span>
+        </div>
+
+        <div class="input-group mb-8 relative">
+            <ion-icon name="lock-closed-outline" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></ion-icon>
+            <input type="password" id="passwordcon" name="passwordcon" placeholder=" " required autocomplete="new-password"
+                   class="w-full pl-10 pr-4 py-3 bg-gray-700 rounded-lg border border-gray-600
+                          focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition duration-200"
+            />
+            <label for="passwordcon" class="absolute left-10 top-3 text-gray-400 transition-all duration-200 pointer-events-none">Confirm Password</label>
+            <span th:if="${passwordMismatch}" class="text-red-400 text-sm mt-1 block pl-10">Passwords do not match!</span>
+        </div>
+
+        <button id="submit" type="submit"
+                class="w-full h-12 rounded-lg bg-primary-blue text-white font-extrabold text-lg
+                       shadow-xl hover:shadow-primary-blue/30 active:scale-[0.98]
+                       transition-all duration-300 ease-in-out">
+            Sign Up
+        </button>
+
+        <div class="text-center text-sm text-gray-400 mt-8">
+            <p>Already have an account?
+                <a th:href="@{/login}" id="login-link"
+                   class="font-bold text-primary-blue hover:underline transition-colors duration-300 ml-1">
+                    Log In
+                </a>
+            </p>
+        </div>
+
+    </form>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Minimal CSS for centering and basic appearance */
+        body {
+            background-color: #f4f4f9; /* Light gray background */
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen font-sans">
+
+<div class="w-full max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-md">
+
+    <!-- Spring Security Error/Logout Messages (Thymeleaf required) -->
+
+    <!-- Agar login fail hua (Spring Security se), toh yeh message dikhega -->
+
+
+<!--        <div th:if="${param.error}"-->
+<!--         class="mb-4 p-3 bg-red-100 text-red-700 border border-red-400 rounded-md text-sm">-->
+<!--        Invalid Email or Password. Please try again.-->
+<!--    </div>-->
+
+    <!-- Agar user logout karta hai, toh yeh message dikhega -->
+<!--    <div th:if="${param.logout}"-->
+<!--         class="mb-4 p-3 bg-green-100 text-green-700 border border-green-400 rounded-md text-sm">-->
+<!--        You have been successfully logged out.-->
+<!--    </div>-->
+
+
+
+    <h1 class="text-2xl font-bold text-gray-800 text-center mb-6">User Login</h1>
+
+    <!-- Form action /login par POST hoga, jise Spring Security handle karega -->
+    <form th:action="@{/login}" method="post" class="space-y-4">
+
+        <!-- Email Field: name="username" is crucial for Spring Security -->
+        <div>
+            <label for="email" class="block mb-2 text-sm font-medium text-gray-700">Email</label>
+            <input type="text" id="email" name="email" required autocomplete="email"
+                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            />
+        </div>
+
+        <!-- Password Field: name="password" is crucial for Spring Security -->
+        <div>
+            <label for="password" class="block mb-2 text-sm font-medium text-gray-700">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password"
+                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            />
+        </div>
+
+        <button type="submit"
+                class="w-full py-2.5 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150">
+            Log In
+        </button>
+
+    </form>
+
+    <div class="text-center text-sm text-gray-600 mt-4">
+        <p>Don't have an account?
+            <!-- Yeh link /register endpoint par GET request bhejega, jo aapke controller se signup page kholega -->
+            <a th:href="@{/register}"
+               class="font-medium text-blue-600 hover:underline ml-1">
+                Sign Up
+            </a>
+        </p>
+    </div>
+
+</div>
+
+</body>
+</html>

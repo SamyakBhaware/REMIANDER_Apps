@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple User Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Minimal CSS for centering and basic appearance, matching login.html */
+        body {
+            background-color: #f4f4f9; /* Light gray background */
+        }
+    </style>
+    <script>
+        // --- Custom Message Box for Client-side Feedback ---
+        const showMessageBox = (message, color) => {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+
+            messageBox.classList.remove('hidden', 'bg-red-700', 'bg-green-700');
+            messageBox.classList.add(color === 'red' ? 'bg-red-700' : 'bg-green-700');
+
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 4000);
+        }
+
+        // --- AJAX Submission Logic for your ContentController ---
+        const handleSignup = async (event) => {
+            event.preventDefault();
+
+            const submitButton = document.getElementById("submit");
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('passwordcon').value;
+
+            // Input Validation (Simple Client-side Check)
+            if (!username || !email || !password || !confirmPassword) {
+                showMessageBox("Please fill in all required fields.", 'red');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showMessageBox("Error: Passwords do not match!", 'red');
+                return;
+            }
+
+            const userData = {
+                username,
+                email,
+                password
+            };
+
+            // UI Feedback during submission
+            submitButton.textContent = 'Processing...';
+            submitButton.disabled = true;
+
+            try {
+                // Hitting your Controller's specific POST endpoint: /req/register
+                const response = await fetch('/req/register', {
+                    method: 'POST',
+                    headers:{
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const resultText = await response.text();
+
+                if (response.ok && resultText.trim() === 'success') {
+                    showMessageBox('Signup successful! Redirecting to Login...', 'green');
+                    document.getElementById('signup-form').reset();
+
+                    // Success ke baad login page par redirect
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    // Controller se 'error' string ya koi aur response aane par
+                    const errorMessage = resultText.includes("error") ? resultText : 'Registration failed. Please check the server logs.';
+                    showMessageBox(errorMessage, 'red');
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                showMessageBox('Registration failed: Could not connect to the server.', 'red');
+            } finally {
+                submitButton.textContent = 'Sign Up';
+                submitButton.disabled = false;
+            }
+        };
+
+        window.onload = () => {
+            document.getElementById('signup-form').addEventListener('submit', handleSignup);
+        };
+    </script>
+</head>
+<body class="flex items-center justify-center min-h-screen font-sans">
+
+<!-- Custom Message Box -->
+<div id="message-box" class="hidden fixed top-4 mx-auto w-full max-w-sm text-center py-3 px-4 rounded-lg text-white font-medium shadow-xl z-50">
+</div>
+
+<div class="w-full max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-md">
+
+    <h1 class="text-2xl font-bold text-gray-800 text-center mb-6">Create Account</h1>
+
+    <!-- Form will be submitted via JavaScript's fetch API -->
+    <form id="signup-form" method="post" class="space-y-4">
+
+        <!-- Username Field -->
+        <div>
+            <label for="username" class="block mb-2 text-sm font-medium text-gray-700">Full Name</label>
+            <input type="text" id="username" name="username" required autocomplete="name"
+                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            />
+        </div>
+
+        <!-- Email Field -->
+        <div>
+            <label for="email" class="block mb-2 text-sm font-medium text-gray-700">Email Address</label>
+            <input type="email" id="email" name="email" required autocomplete="email"
+                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            />
+        </div>
+
+        <!-- Password Field -->
+        <div>
+            <label for="password" class="block mb-2 text-sm font-medium text-gray-700">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="new-password"
+                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            />
+        </div>
+
+        <!-- Confirm Password Field -->
+        <div>
+            <label for="passwordcon" class="block mb-2 text-sm font-medium text-gray-700">Confirm Password</label>
+            <input type="password" id="passwordcon" name="passwordcon" required autocomplete="new-password"
+                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            />
+        </div>
+
+        <button id="submit" type="submit"
+                class="w-full py-2.5 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150">
+            Sign Up
+        </button>
+
+    </form>
+
+    <div class="text-center text-sm text-gray-600 mt-4">
+        <p>Already have an account?
+            <!-- /login par GET request bhejega -->
+            <a th:href="@{/login}"
+               class="font-medium text-blue-600 hover:underline ml-1">
+                Log In
+            </a>
+        </p>
+    </div>
+
+</div>
+
+</body>
+</html>

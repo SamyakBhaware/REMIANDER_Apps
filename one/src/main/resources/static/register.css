@@ -1,0 +1,109 @@
+
+/* 1. Base Styling (Mobile-First Approach) */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #e9ebee; /* Light background */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Mobile pe thoda upar se start ho */
+    min-height: 100vh;
+    padding: 20px; /* Sides se thodi padding */
+}
+
+.register-container {
+    background-color: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Mobile pe full width le lo */
+}
+
+h2 {
+    text-align: center;
+    color: #2196F3; /* IIT Blue */
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+/* Input Group Styling */
+.input-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+input:focus {
+    border-color: #2196F3;
+    outline: none;
+}
+
+/* Button Styling */
+.register-button {
+    width: 100%;
+    background-color: #4CAF50; /* Success Green */
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.register-button:hover {
+    background-color: #45a049;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.login-link a {
+    color: #2196F3;
+    text-decoration: none;
+}
+
+.validation-message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+}
+
+
+/* 2. Media Query (For Bigger Screens/Laptops) */
+/* Jab screen 600px se badi ho, tab yeh rules apply honge */
+@media (min-width: 600px) {
+    .register-container {
+        padding: 40px;
+        max-width: 400px; /* Desktop pe width limit kar di */
+        margin-top: 50px; /* Screen ke beech mein dikhe */
+    }
+}

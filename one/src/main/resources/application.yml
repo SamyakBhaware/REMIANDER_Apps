@@ -1,0 +1,38 @@
+server:
+  error:
+    # Error messages ko API response mein hamesha include karega
+    include-message: always
+    include-binding-errors: always
+
+spring:
+  datasource:
+    # JDBC URL: Correct format for PostgreSQL (do colon '::' nahi, sirf ek ':')
+    url: jdbc:postgresql://localhost:5432/registration
+
+    # Username: Default superuser jo tumne database connect karne ke liye use kiya
+    username: samyak
+
+    # Password: Tumhare postgres user ka password (change this!)
+    password: 111
+
+    # Driver Class: Zaroori agar Spring Boot khud se guess na kar paye
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    # JPA/Hibernate Configuration is under spring.jpa
+    hibernate:
+      # Tables ko start par create karega aur application band hone par drop kar dega (Testing ke liye achha)
+      ddl-auto: update
+    properties:
+      hibernate:
+        # PostgreSQL specific dialect use karein
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # Console par queries ko clean format mein print karein
+        format_sql: true
+    # Show SQL: console par saari queries print karein
+    show-sql: true
+
+
+
+
+

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Login</title>
+
+    <style>
+        /* Minimalist and Simple CSS */
+        :root {
+            --primary-blue: #3b82f6; /* Blue 500 */
+            --bg-dark: #1f2937; /* Gray 800 - Body BG */
+            --card-bg: #2e3a46; /* Slightly lighter gray for card */
+            --text-light: #f3f4f6;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #login-section {
+            width: 100%;
+            max-width: 360px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        /* Input Group Styling for floating labels */
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            position: absolute;
+            top: 10px;
+            left: 45px;
+            color: #9ca3af; /* Gray 400 */
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px 10px 10px 40px; /* Left padding for icon */
+            background-color: var(--bg-dark);
+            border: 1px solid #4b5563; /* Gray 600 */
+            border-radius: 5px;
+            color: var(--text-light);
+            outline: none;
+        }
+
+        /* Icon styling */
+        .input-group .icon {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            color: #9ca3af;
+            font-size: 18px;
+        }
+
+        /* Floating Label Effect */
+        .input-group input:focus + label,
+        .input-group input:not(:placeholder-shown) + label {
+            top: -10px;
+            left: 10px;
+            font-size: 12px;
+            color: var(--primary-blue);
+            background-color: var(--card-bg);
+            padding: 0 5px;
+        }
+
+        /* Login Button */
+        #login-button {
+            width: 100%;
+            height: 40px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--primary-blue);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 15px;
+        }
+
+        #login-button:hover {
+            background-color: #2563eb; /* Darker blue */
+        }
+
+        #login-button:disabled {
+            background-color: #4b5563; /* Grayed out when disabled */
+            cursor: not-allowed;
+        }
+
+        /* Links */
+        .link {
+            font-size: 14px;
+            color: var(--primary-blue);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .link:hover {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+
+        /* Message Box */
+        #message-box {
+            position: fixed;
+            top: 20px;
+            margin: 0 auto;
+            left: 0;
+            right: 0;
+            width: 90%;
+            max-width: 400px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .bg-red-message { background-color: #ef4444; } /* Red 500 */
+        .bg-green-message { background-color: #10b981; } /* Emerald 500 */
+
+    </style>
+</head>
+
+<body>
+
+<div id="message-box" class="hidden">
+</div>
+
+<section id="login-section">
+
+    <form id="login-form" method="POST" action="/req/login">
+
+        <h1>Login</h1>
+
+        <div class="input-group">
+            <span class="icon">📧</span> <input name="email" id="email" type="email" placeholder=" " required autocomplete="username" />
+            <label for="email">Email</label>
+        </div>
+
+        <div class="input-group">
+            <span class="icon">🔒</span> <input name="password" type="password" id="password" placeholder=" " required autocomplete="current-password" />
+            <label for="password">Password</label>
+        </div>
+
+        <div style="text-align: right; margin-top: 10px; margin-bottom: 20px;">
+            <a href="#" style="color: #9ca3af;" class="link">
+                Forget Password?
+            </a>
+        </div>
+
+        <button id="login-button" type="submit">
+            Log In
+        </button>
+
+        <div style="text-align: center; font-size: 14px; color: #ccc; margin-top: 20px;">
+            <p>Don't have an account?
+                <a href="/req/register" class="link" style="font-weight: bold;">
+                    Sign Up
+                </a>
+            </p>
+        </div>
+
+        <div style="text-align: center; font-size: 14px; margin-top: 10px;">
+            <a href="/home" style="color: #9ca3af; text-decoration: underline;" class="link">
+                Proceed without Login
+            </a>
+        </div>
+
+    </form>
+</section>
+
+<script>
+    // Custom Message Box function (SIMPLIFIED)
+    const showMessageBox = (message, color) => {
+        const messageBox = document.getElementById('message-box');
+        messageBox.textContent = message;
+
+        // Clear existing color classes and show
+        messageBox.classList.remove('bg-red-message', 'bg-green-message', 'hidden');
+
+        if (color === 'red') {
+            messageBox.classList.add('bg-red-message');
+        } else if (color === 'green') {
+            messageBox.classList.add('bg-green-message');
+        }
+
+        // Show the box (Opacity change only)
+        messageBox.style.opacity = '1';
+
+        // Hide message after 3 seconds
+        setTimeout(() => {
+            messageBox.style.opacity = '0';
+            // Hide message after transition (0.5s CSS transition time)
+            setTimeout(() => messageBox.classList.add('hidden'), 500);
+        }, 3000);
+    };
+
+    // 1. Client-Side Validation Logic
+    const loginForm = document.getElementById('login-form');
+    loginForm.addEventListener('submit', (event) => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const loginButton = document.getElementById('login-button');
+
+        // 🔑 Validation Check: Check kar rahe hain ki details khali toh nahi hain
+        if (email.trim() === "" || password.trim() === "") {
+            event.preventDefault(); // Form submission ko rok do
+            showMessageBox("Kripya email aur password dono daalein.", 'red');
+            return;
+        }
+
+        // **IMPORTANT:** Since Spring Security handles the form submission,
+        // we'll let the browser submit the form normally (method="POST" action="/req/login").
+        // We only override the default behavior for client-side validation errors.
+
+        // Agar details bhari hain, toh submit hone do.
+        // Form submit hone se pehle visual feedback (optional)
+        loginButton.textContent = 'Submitting...';
+        loginButton.disabled = true;
+
+        // Backend se response aane par button ko wapis theek karna
+        // NOTE: Kyunki humne actual fetch call nikal di hai, yeh part
+        // Spring Security ke response par depend karega. Agar Spring Security
+        // successful hota hai, toh woh /home par redirect kar dega.
+        // Agar fail hota hai, toh woh /req/login?error=true par redirect karega
+        // (ya jo bhi aapki Spring config hai).
+
+        // Agar aapko redirect ke baad bhi message box dikhana hai, toh
+        // aapko backend se URL mein parameters bhejne honge (e.g., ?success=true).
+
+    });
+
+    // 2. Spring Security Error/Success Handler (Pure JS - Minimalist Approach)
+    // Jab Spring Security login fail karta hai, toh woh aksar URL mein ?error=true add karta hai.
+    window.onload = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (urlParams.has('error')) {
+            // Login failed, Spring Security redirected to this URL with error.
+            showMessageBox("Login failed: Galat email ya password.", 'red');
+        }
+
+        // Optional: Agar aap koi success parameter bhej rahe hain
+        if (urlParams.has('success')) {
+            showMessageBox("Successfully logged in!", 'green');
+        }
+
+        // Ensure the button is enabled on page load
+        document.getElementById('login-button').disabled = false;
+        document.getElementById('login-button').textContent = 'Log In';
+    };
+
+</script>
+</body>
+</html>
