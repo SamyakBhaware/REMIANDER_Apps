@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Deleted Successfully</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+    <script>
+        const registerButton = document.getElementById('register-button').onclick(
+            await fetch('/register', {
+                method: 'GET',
+                headers:{
+                    'Content-Type': 'application/json'
+                }
+             }
+
+        ))
+    </script>
+    <style>
+        /* Tumhari Inter font aur colors yahan phir se define kar di hain */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .primary-color { background-color: #3b82f6; } /* Tailwind blue-500 */
+        .primary-hover { background-color: #2563eb; } /* Tailwind blue-600 */
+    </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 h-screen flex items-center justify-center">
+
+<div class="p-8 max-w-lg w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl text-center border border-red-500/30">
+
+    <ion-icon name="close-circle-outline" class="text-6xl text-red-600 mx-auto mb-4"></ion-icon>
+
+    <h1 class="text-3xl font-extrabold mb-3 text-gray-900 dark:text-gray-100">
+        Account Permanently Deleted
+    </h1>
+
+    <p class="text-lg text-gray-600 dark:text-gray-400 mb-8">
+        Aapka account aur saara data successfully delete ho chuka hai. Hum aapko fir se dekhne ki ummeed karte hain!
+    </p>
+
+<!--    <a href="/register"-->
+<!--       class="inline-flex items-center justify-center primary-color hover:primary-hover text-white font-bold text-lg py-3 px-10 rounded-full shadow-lg transition-all duration-200 transform hover:scale-[1.02] ring-4 ring-red-500/30">-->
+<!--        <ion-icon name="person-add-outline" class="text-2xl mr-2"></ion-icon>-->
+<!--         Register-->
+<!--    </a>-->
+
+    <button id="register-button"
+    class="inline-flex items-center justify-center primary-color hover:primary-hover text-white font-bold text-lg py-3 px-10 rounded-full shadow-lg transition-all duration-200 transform hover:scale-[1.02] ring-4 ring-red-500/30"
+        >Register</button>
+
+</div>
+
+</body>
+</html>

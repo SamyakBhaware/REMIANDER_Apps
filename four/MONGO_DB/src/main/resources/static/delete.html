@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Deletion - Final Step</title>
+    <link rel="stylesheet" href="delete.css">
+</head>
+<body>
+<div class="delete-container">
+    <h2>❌ Delete Your IIT-Portal Account?</h2>
+    <div class="warning-box">
+        <p><strong>This action is irreversible!</strong> Are you absolutely sure you want to permanently delete your account and all associated data?</p>
+        <p>Type **DELETE** below to confirm.</p>
+    </div>
+
+    <form id="deleteForm">
+        <div class="input-group">
+            <label for="confirmation">Type "DELETE" to confirm:</label>
+            <input type="text" id="confirmation" name="confirmation" placeholder="Type DELETE" required>
+        </div>
+
+        <button type="submit" class="delete-button">Confirm Delete</button>
+        <button type="button" class="cancel-button" onclick="history.back()">Cancel</button>
+
+        <div id="message" class="feedback-message"></div>
+    </form>
+</div>
+<script src="delete.js"></script>
+</body>
+</html>

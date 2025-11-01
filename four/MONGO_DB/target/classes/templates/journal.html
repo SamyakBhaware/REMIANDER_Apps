@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Journal & Target Tracker</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons Library -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        /* Custom font import for aesthetics */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+        :root {
+            --primary-color: #3b82f6; /* Blue 500 */
+            --bg-dark: #1f2937; /* Gray 800 */
+            --text-light: #f3f4f6; /* Gray 100 */
+        }
+
+        /* Using Inter font as default */
+        body { font-family: 'Inter', sans-serif; }
+
+        /* Custom scrollbar for the entries list */
+        .entries-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .entries-scroll::-webkit-scrollbar-thumb {
+            background-color: var(--primary-color);
+            border-radius: 3px;
+        }
+
+        .entries-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Custom styles for the responsive layout - ensures full viewport coverage */
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Prevent body scrollbar */
+        }
+
+        #app-body {
+            height: calc(100vh - 64px); /* Full height minus header height (h-16) */
+        }
+
+        /* Style to show the read-only state */
+        #target-text-area[readonly] {
+            cursor: not-allowed;
+            background-color: #e5e7eb; /* Light gray background when locked */
+            color: #4b5563; /* Darker text */
+            opacity: 0.8;
+        }
+        .dark #target-text-area[readonly] {
+            background-color: #1f2937; /* Darker background when locked in dark mode */
+            color: #d1d5db;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Enable dark mode
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6', // Tailwind blue-500
+                        secondary: '#10b981', // Tailwind emerald-500
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 flex flex-col h-screen">
+
+<!-- Firestore & Firebase Imports -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { setLogLevel } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // setLogLevel('Debug'); // Uncomment for debugging Firestore
+
+    // --- SERVER-SIDE INJECTED USERNAME ---
+    // Thymeleaf will replace '[[${username}]]' with the logged-in user's email (String).
+    const authenticatedUsername = '[[${username}]]';
+    // -------------------------------------
+
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    // initialAuthToken ki ab zaroorat nahi hai kyunki hum Spring Security use kar rahe hain.
+
+    if (!firebaseConfig) {
+        console.error("Firebase config is missing. Data persistence will not work.");
+    }
+
+    let db, auth, userId = 'loading'; // userId ab email hoga
+    let entries = [];
+    let currentEntryId = null;
+
+    const dateDisplay = document.getElementById('current-date');
+    const dailyText = document.getElementById('daily-text-area');
+    const targetText = document.getElementById('target-text-area');
+    const entriesList = document.getElementById('entries-list');
+    const userIdDisplay = document.getElementById('user-id-display');
+    const entryTitle = document.getElementById('entry-title');
+    const modalContainer = document.getElementById('modal-container');
+    const modalMessage = document.getElementById('modal-message');
+    const targetToggleButton = document.getElementById('target-toggle-button');
+
+    // New Global Variable for the Delete Modal
+    const deleteConfirmModal = document.getElementById('delete-confirm-modal');
+    const finalDeleteButton = document.getElementById('final-delete-button'); // Added this to hook the event later
+
+
+    // Utility: Convert date string (YYYY-MM-DD) to a more readable format
+    // const formatDate = (dateString) => {
+    //     if (!dateString) return 'New Entry';
+    //     try {
+    //         const date = new Date(dateString);
+    //         return date.toLocaleDateString('en-US', {
+    //             weekday: 'short',
+    //             year: 'numeric',
+    //             month: 'short',
+    //             day: 'numeric'
+    //         });
+    //     } catch (e) {
+    //         return 'Invalid Date';
+    //     }
+    // };
+
+    // Utility: Show Custom Modal Message
+    const showModal = (message, type = 'success') => {
+        modalMessage.textContent = message;
+        modalContainer.classList.remove('hidden', 'bg-green-500', 'bg-red-500', 'bg-yellow-500');
+        if (type === 'success') {
+            modalContainer.classList.add('bg-green-500');
+        } else if (type === 'error') {
+            modalContainer.classList.add('bg-red-500');
+        } else {
+            modalContainer.classList.add('bg-yellow-500');
+        }
+        setTimeout(() => {
+            modalContainer.classList.add('hidden');
+        }, 3000);
+    };
+
+    // NEW: Function to toggle the editability of the Target Text Area
+    window.toggleTargetEdit = () => {
+        const isReadonly = targetText.hasAttribute('readonly');
+
+        if (isReadonly) {
+            // Unlock
+            targetText.removeAttribute('readonly');
+            targetToggleButton.innerHTML = '<ion-icon name="lock-open-outline" class="text-xl"></ion-icon> Unlock Targets';
+            targetToggleButton.classList.remove('bg-gray-500/50', 'hover:bg-gray-600/50');
+            targetToggleButton.classList.add('bg-yellow-500/50', 'hover:bg-yellow-600/50');
+            showModal('Targets are unlocked for editing.', 'warning');
+        } else {
+            // Lock
+            targetText.setAttribute('readonly', 'readonly');
+            targetToggleButton.innerHTML = '<ion-icon name="lock-closed-outline" class="text-xl"></ion-icon> Lock Targets';
+            targetToggleButton.classList.remove('bg-yellow-500/50', 'hover:bg-yellow-600/50');
+            targetToggleButton.classList.add('bg-gray-500/50', 'hover:bg-gray-600/50');
+            showModal('Targets are locked. Stay committed!', 'success');
+        }
+    };
+
+    // --- Core Firebase Initialization and Auth ---
+    window.initFirebase = async () => {
+        if (!firebaseConfig) return;
+
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        // Spring Security ke through user authenticated hai.
+        // Ab hum user ka email hi as the unique identifier use karenge.
+        userId = authenticatedUsername;
+
+        // UI mein username (email) set karo (Thymeleaf ne already isko set kar diya hoga, par JS ke liye rakha hai)
+        userIdDisplay.textContent = userId;
+
+        // Load Real-time Data
+        if (userId && userId !== 'loading' && userId !== 'anonymous') {
+            startRealtimeListener();
+        } else {
+            // Agar username inject nahi hua (jo nahi hona chahiye) toh error dikhao
+            console.error("Authentication failed: Username not injected by Thymeleaf.");
+            showModal('Authentication Error. Please re-login.', 'error');
+        }
+
+        // Initialize a new entry view
+        newEntry();
+    };
+
+    // Function to sign out the user
+    window.signOutUser = async () => {
+        // Since we are using Spring Security, logging out in Firebase is not enough.
+        // Humein Spring Security ke logout URL par redirect karna hoga.
+        window.location.href = "/logout";
+    };
+
+    // NEW: Function to show the confirmation modal
+    window.deleteUser = () => {
+        deleteConfirmModal.classList.remove('hidden');
+        // Optional: Add a smooth fade-in effect to the inner modal (Advanced)
+        // You can also use Tailwind classes to control the scale/opacity for a nice transition
+    };
+
+    // NEW: Function to hide the confirmation modal (Called by Cancel button)
+    window.hideDeleteConfirmModal = () => {
+        deleteConfirmModal.classList.add('hidden');
+    };
+
+    // NEW: Function to finally process the deletion (Called by the 'Yes, Delete' button)
+    window.processDeletion = async () => {
+        hideDeleteConfirmModal(); // Modal hide karo
+        showModal('Processing account deletion...', 'error');
+        // Spring Security ke logout/delete URL par redirect karna hai.
+        // Isse hi tumhara actual deletion process trigger hoga.
+        window.location.href = "/delete";
+    };
+
+
+
+
+    // --- Firestore Data Operations ---
+
+    // Collection path mein ab user ka email use hoga as a unique identifier.
+    const getCollectionPath = (uid) => {
+        return `/artifacts/${appId}/users/${uid}/journal_entries`;
+    };
+
+    // 3. Real-time Data Listener (onSnapshot)
+    const startRealtimeListener = () => {
+        const entriesRef = collection(db, getCollectionPath(userId));
+        // Fetch all entries, sorted by date in descending order (latest first)
+        const q = query(entriesRef, orderBy("date", "desc"));
+
+        onSnapshot(q, (snapshot) => {
+            entries = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            renderEntriesList();
+            // showModal('Entries updated in real-time.', 'success'); // Too frequent, so commenting out
+        }, (error) => {
+            console.error("Error listening to entries:", error);
+            showModal('Failed to load real-time data.', 'error');
+        });
+    };
+
+    // 4. Save/Update Entry
+    window.saveEntry = async () => {
+        if (!db || !userId) return showModal('App not initialized or user not logged in.', 'error');
+
+        const currentDailyText = dailyText.value.trim();
+        const currentTargetText = targetText.value.trim();
+        const currentDate = dateDisplay.value;
+
+        if (!currentDailyText && !currentTargetText) {
+            return showModal('Entry is empty. Please write something.', 'warning');
+        }
+
+        const entryData = {
+            date: currentDate,
+            daily_text: currentDailyText,
+            target_text: currentTargetText,
+            timestamp: serverTimestamp()
+        };
+
+        try {
+            if (currentEntryId) {
+                // Update existing document
+                const docRef = doc(db, getCollectionPath(userId), currentEntryId);
+                await setDoc(docRef, entryData, { merge: true });
+                showModal('Entry updated successfully!', 'success');
+            } else {
+                // Add new document
+                const newDocRef = doc(collection(db, getCollectionPath(userId)));
+                await setDoc(newDocRef, entryData);
+                currentEntryId = newDocRef.id; // Set the ID of the newly created entry
+                showModal('New entry saved!', 'success');
+            }
+        } catch (e) {
+            console.error("Error saving document: ", e);
+            showModal('Error saving entry.', 'error');
+        }
+    };
+
+    // 5. Load Entry into Editor
+    window.loadEntry = (entryId) => {
+        const entry = entries.find(e => e.id === entryId);
+        if (entry) {
+            currentEntryId = entryId;
+            dateDisplay.value = entry.date;
+            dailyText.value = entry.daily_text || '';
+            targetText.value = entry.target_text || '';
+            entryTitle.textContent = formatDate(entry.date);
+
+            // Visually highlight the selected entry in the sidebar
+            document.querySelectorAll('.entry-item').forEach(el => {
+                el.classList.remove('bg-primary/20', 'ring-2', 'ring-primary');
+            });
+            document.getElementById(`entry-${entryId}`).classList.add('bg-primary/20', 'ring-2', 'ring-primary');
+
+            // Ensure targets are locked when loading an old entry
+            if (!targetText.hasAttribute('readonly')) {
+                toggleTargetEdit();
+            }
+        }
+    };
+
+    // 6. Start a New Entry (Clear the editor)
+    window.newEntry = () => {
+        currentEntryId = null;
+        const today = new Date().toISOString().split('T')[0];
+        dateDisplay.value = today;
+        dailyText.value = '';
+        targetText.value = '';
+        entryTitle.textContent = formatDate(today);
+
+        // Ensure targets are locked when starting a new entry
+        if (!targetText.hasAttribute('readonly')) {
+            toggleTargetEdit();
+        }
+
+        // Remove highlight from all list items
+        document.querySelectorAll('.entry-item').forEach(el => {
+            el.classList.remove('bg-primary/20', 'ring-2', 'ring-primary');
+        });
+    };
+
+    // 7. Render Sidebar List
+    const renderEntriesList = () => {
+        entriesList.innerHTML = ''; // Clear the list
+        if (entries.length === 0) {
+            entriesList.innerHTML = `<p class="text-gray-400 text-sm p-4 text-center">No entries yet. Start writing!</p>`;
+            return;
+        }
+
+        entries.forEach(entry => {
+            const item = document.createElement('div');
+            item.id = `entry-${entry.id}`;
+            item.classList.add('entry-item', 'p-3', 'cursor-pointer', 'rounded-lg', 'transition-colors', 'hover:bg-primary/10', 'dark:hover:bg-primary/10', 'mb-2');
+            item.setAttribute('onclick', `loadEntry('${entry.id}')`);
+            item.innerHTML = `
+                    <h3 class="font-semibold text-sm truncate">${formatDate(entry.date)}</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate">${entry.daily_text.substring(0, 30) || entry.target_text.substring(0, 30) || 'No Content'}</p>
+                `;
+            entriesList.appendChild(item);
+        });
+    };
+
+    // Start initialization when the window loads
+    window.onload = () => {
+        // Set initial state for target area: Readonly and Lock button visible
+        targetText.setAttribute('readonly', 'readonly');
+        targetToggleButton.innerHTML = '<ion-icon name="lock-closed-outline" class="text-xl"></ion-icon> Lock Targets';
+        targetToggleButton.classList.add('bg-gray-500/50', 'hover:bg-gray-600/50');
+        initFirebase();
+    }
+
+</script>
+
+
+<!-- Custom Modal for Notifications -->
+<div id="modal-container" class="hidden fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-xl text-white font-semibold transition-all duration-300 transform translate-y-0" role="alert">
+    <span id="modal-message"></span>
+</div>
+
+
+<div id="delete-confirm-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center transition-opacity duration-300">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-11/12 max-w-md transform scale-100 transition-transform duration-300">
+        <h3 class="text-xl font-bold text-red-600 dark:text-red-400 mb-4">Confirm Account Deletion</h3>
+        <p class="text-gray-700 dark:text-gray-300 mb-6">
+            **Are you absolutely sure?** This action cannot be undone. All your journal entries will be permanently deleted.
+        </p>
+        <div class="flex justify-end space-x-3">
+            <button onclick="hideDeleteConfirmModal()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                Cancel
+            </button>
+            <button id="final-delete-button" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors">
+                Yes, Delete My Account
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+<!-- 1. Header -->
+<header class="flex-shrink-0 bg-white dark:bg-gray-800 h-16 shadow-lg flex items-center justify-between px-4 sm:px-6">
+
+    <!--    <div class="flex items-center">-->
+<!--        <ion-icon name="book-outline" class="text-primary text-2xl mr-2"></ion-icon>-->
+<!--        <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">-->
+<!--            IIT-Level Planning Journal-->
+<!--        </h1>-->
+<!--    </div>-->
+
+    <!-- Yahan Thymeleaf username daalega -->
+    <div class="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
+        Logged in as: <span id="user-id-display" class="font-mono text-primary" th:text="${username}">Guest User</span>
+    </div>
+
+    <!-- Delete Account Button (Pushed to the bottom) -->
+    <button onclick="deleteUser()" class="mt-auto w-80 bg-red-600 hover:bg-red-700 text-white font-medium py-2 my-2 rounded-lg shadow-md transition-all ">
+        <ion-icon name="log-out-outline" class="mr-1"></ion-icon> Delete Account
+    </button>
+</header>
+
+<!-- 2. Main Body (Navigation + Content) -->
+<main id="app-body" class="flex flex-grow overflow-hidden">
+
+    <!-- 3. Navigation Sidebar -->
+    <nav class="navigation w-64 md:w-80 flex-shrink-0 p-4 dark:bg-gray-800/50 backdrop-blur-sm border-r dark:border-gray-700 flex flex-col transition-all duration-300 hidden sm:flex">
+
+        <h2 class="text-lg font-semibold mb-4 border-b pb-2 dark:border-gray-700">Past Entries</h2>
+
+        <!-- New Entry Button -->
+<!--        <button onclick="newEntry()" class="w-full bg-secondary hover:bg-secondary/80 text-white font-bold py-2 rounded-lg mb-4 shadow-md transition-transform transform hover:scale-[1.02]">-->
+<!--            <ion-icon name="add-circle-outline"></ion-icon> New Entry-->
+<!--        </button>-->
+
+
+        <!-- Entries List (Scrollable area) -->
+        <div id="entries-list" class="entries-scroll flex-grow overflow-y-auto pr-2 mb-4 space-y-2">
+            <!-- Entries will be dynamically loaded here by Firestore listener -->
+            <p class="text-gray-400 text-sm p-4 text-center">Your entries</p>
+        </div>
+
+
+        <!-- Sign out Button (Pushed to the bottom) -->
+        <button onclick="signOutUser()" class="mt-auto w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 rounded-lg shadow-md transition-all">
+            <ion-icon name="log-out-outline" class="mr-1"></ion-icon> Sign Out
+        </button>
+
+
+    </nav>
+
+    <!-- 4. Content Area (Journaling Interface) -->
+    <div class="container flex-grow p-4 overflow-y-auto">
+
+        <!-- Date & Title Row -->
+<!--        <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 pb-2 border-b dark:border-gray-700 sticky top-0 bg-gray-50 dark:bg-gray-900 z-10">-->
+<!--            <h2 id="entry-title" class="text-2xl font-extrabold mb-2 md:mb-0 text-primary">New  Entry</h2>-->
+<!--            <div class="flex items-center space-x-2">-->
+<!--                <label for="current-date" class="font-medium text-sm">Date:</label>-->
+<!--                <input type="date" id="current-date" class="rounded-lg p-2 bg-white dark:bg-gray-800 border dark:border-gray-600 focus:ring-primary focus:border-primary transition-all duration-150" />-->
+<!--            </div>-->
+<!--        </div>-->
+
+        <!-- Text Areas (Side-by-side on desktop, stacked on mobile) -->
+        <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
+
+            <!-- Daily Entry Area (Always editable) -->
+            <div class="daily-text flex flex-col flex-1 shadow-xl rounded-xl">
+                <label for="daily-text-area" class="text-lg font-semibold mb-2 p-3 bg-gray-200 dark:bg-gray-700 rounded-t-xl">
+                    <ion-icon name="create-outline" class="mr-1"></ion-icon> Daily Study/Revision Log
+                </label>
+                <textarea id="daily-text-area"
+                          placeholder="Write here the things you did to accomplish your goal, how it is going to help your goal?"
+                          class="flex-1 w-full min-h-[70vh] p-4 text-base resize-none border-none focus:outline-none rounded-b-xl bg-white dark:bg-gray-800 shadow-inner"
+                ></textarea>
+            </div>
+
+            <!-- Future Targets Area (Editable with a toggle button) -->
+            <div class="target-text flex flex-col flex-1 shadow-xl rounded-xl">
+
+                <div class="flex items-center justify-between p-3 bg-gray-200 dark:bg-gray-700 rounded-t-xl">
+                    <label class="text-lg font-semibold">
+                        <ion-icon name="checkmark-circle-outline" class="mr-1"></ion-icon> Weekly/Future Targets
+                    </label>
+                    <!-- Toggle Button Added Here -->
+                    <button id="target-toggle-button" onclick="toggleTargetEdit()"
+                            class="flex items-center space-x-1 p-1.5 rounded-full text-sm font-medium transition-all duration-200 text-white">
+                        <!-- Initial state will be set in window.onload -->
+                    </button>
+                </div>
+
+                <textarea id="target-text-area"
+                          placeholder="Take a moment to set your goals — small steps today will shape who you become tomorrow. ✨"
+                          class="flex-1 w-full min-h-[70vh] p-4 text-base resize-none border-none focus:outline-none rounded-b-xl bg-white dark:bg-gray-800 shadow-inner"
+                          readonly="readonly"
+                ></textarea>
+            </div>
+        </div>
+
+        <!-- Save Button Container (Centered at the bottom) -->
+        <div class="button-container flex justify-center mt-8 mb-4">
+            <button onclick="saveEntry()" class="flex items-center bg-primary hover:bg-primary/90 text-white font-extrabold text-lg py-3 px-12 rounded-full shadow-lg transition-all duration-200 transform hover:scale-[1.05] ring-4 ring-primary/30">
+                <ion-icon name="save-outline" class="text-2xl mr-2"></ion-icon> Save Entry
+            </button>
+        </div>
+
+    </div>
+</main>
+</body>
+</html>
