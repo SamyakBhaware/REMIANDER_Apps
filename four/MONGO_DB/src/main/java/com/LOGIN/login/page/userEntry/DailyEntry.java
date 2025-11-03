@@ -1,4 +1,4 @@
-package userEntry;
+package com.LOGIN.login.page.userEntry;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;

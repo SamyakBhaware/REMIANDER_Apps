@@ -12,69 +12,70 @@
     </style>
     <script th:inline="javascript">
 
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
+        document.addEventListener("DOMContentLoaded", () => {
 
 
-        /*<![CDATA[*/
-        const showMessageBox = (message, color) => {
-            const messageBox = document.getElementById('message-box');
-            messageBox.textContent = message;
-            messageBox.classList.remove('hidden', 'bg-red-700', 'bg-green-700');
-            messageBox.classList.add(color === 'red' ? 'bg-red-700' : 'bg-green-700');
 
-            setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 4000);
-        };
+            /*<![CDATA[*/
+            const showMessageBox = (message, color) => {
+                const messageBox = document.getElementById('message-box');
+                messageBox.textContent = message;
+                messageBox.classList.remove('hidden', 'bg-red-700', 'bg-green-700');
+                messageBox.classList.add(color === 'red' ? 'bg-red-700' : 'bg-green-700');
 
-        const handleSignup = async (event) => {
-            event.preventDefault();
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 4000);
+            };
 
-            const submitButton = document.getElementById("submit");
-            // ... form fields code ...
+            const handleSignup = async (event) => {
+                event.preventDefault();
 
-            const userData = {name, email, password };
+                const submitButton = document.getElementById("submit");
+                // ... form fields code ...
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
 
-            submitButton.textContent = 'Processing...';
-            submitButton.disabled = true;
+                const userData = {name, email, password };
 
-            try {
-                const response = await fetch(/*[[@{/api/req/register}]]*/, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(userData)
-                });
+                submitButton.textContent = 'Processing...';
+                submitButton.disabled = true;
 
-                const resultText = await response.text();
+                try {
+                    const response = await fetch("/api/req/register", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(userData)
+                    });
 
-                if (response.ok && resultText.trim() === 'success') {
-                    showMessageBox('Signup successful! Redirecting to Login...', 'green');
-                    document.getElementById('signup-form').reset();
+                    const resultText = await response.text();
 
-                    setTimeout(() => {
-                        window.location.href = /*[[@{/login}]]*/ '/login';
-                    }, 2000);
-                } else {
-                    const errorMessage = resultText.includes("error") ? resultText : 'Registration failed. Please check the server logs.';
-                    showMessageBox(errorMessage, 'red');
+                    if (response.ok && resultText.trim() === 'success') {
+                        showMessageBox('Signup successful! Redirecting to Login...', 'green');
+                        document.getElementById('signup-form').reset();
+
+                        setTimeout(() => {
+                            window.location.href = /*[[@{/login}]]*/ '/login';
+                        }, 2000);
+                    } else {
+                        const errorMessage = resultText.includes("error") ? resultText : 'Registration failed. Please check the server logs.';
+                        showMessageBox(errorMessage, 'red');
+                    }
+                } catch (error) {
+                    console.error('Network error:', error);
+                    showMessageBox('Registration failed: Could not connect to the server.', 'red');
+                } finally {
+                    submitButton.textContent = 'Sign Up';
+                    submitButton.disabled = false;
                 }
-            } catch (error) {
-                console.error('Network error:', error);
-                showMessageBox('Registration failed: Could not connect to the server.', 'red');
-            } finally {
-                submitButton.textContent = 'Sign Up';
-                submitButton.disabled = false;
-            }
-        };
+            };
 
 
-        window.onload = () => {
             document.getElementById('signup-form').addEventListener('submit', handleSignup);
-        };
+        })
      </script>
 </head>
 <body class="flex items-center justify-center min-h-screen font-sans">
