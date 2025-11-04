@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // /register, /req/register, /login, aur static assets sabko access karne
                         .requestMatchers("/api/req/register","/api/register", "/api/login" ).permitAll()
+                        .requestMatchers("/entries/**").hasRole("OWNER")
                         // 🔑 CRITICAL: /journal ko sirf authenticated users ke liye allow karein
                         .requestMatchers("/journal").authenticated()
                         // Baaki saari requests ko authenticated hona zaroori hai
@@ -39,7 +40,6 @@ public class SecurityConfig {
                 // 2. Form Login Configuration
                 .formLogin(form -> form
                         .loginPage("/api/login") // Custom login page ka URL
-                        .loginProcessingUrl("/api/login") // Jahaan form POST hoga
                         // 🔑 CRITICAL: Success hone par naye Journal App par redirect karein
                         .defaultSuccessUrl("/api/journal", true) // true = always redirect to /journal
                         .failureUrl("/login?error") // Failure hone par /login?error par wapas bhej de

@@ -17,7 +17,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class UserData {
 
     @Id
-    private Long id;
+    private String id;
 
     @NotBlank(message = "Name cannot be empty")
     @Size(min = 3, max = 50, message = "Name must be between 3 and 50 characters")

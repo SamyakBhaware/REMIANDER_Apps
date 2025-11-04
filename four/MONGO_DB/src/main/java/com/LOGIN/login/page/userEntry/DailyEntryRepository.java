@@ -1,4 +1,4 @@
-package userEntry;
+package com.LOGIN.login.page.userEntry;
 
 
 import org.springframework.data.domain.Page;
